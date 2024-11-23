@@ -1,0 +1,66 @@
+diff --git a/out/react.js b/out/react.js
+index fbd1e0190e7997317f607254757cfa6fee8e8708..b29e835d4bceaaecb842cc15497e745a73a0339f 100644
+--- a/out/react.js
++++ b/out/react.js
+@@ -70,14 +70,15 @@ function ZeroProvider({
+ }
+ 
+ // ../zero-react/src/use-query.tsx
+-function useQuery(q, enable = true) {
++function useQuery(q, opts = {}) {
+   const z = useZero();
+   const view = viewStore.getView(
+     z.clientID,
+     q,
+-    enable
++    opts
+   );
+-  return useSyncExternalStore(view.subscribeReactInternals, view.getSnapshot);
++  const getServerSnapshot = () => opts.initialData ?? (q.format.singular ? void 0 : emptyArray);
++  return useSyncExternalStore(view.subscribeReactInternals, view.getSnapshot, getServerSnapshot);
+ }
+ var emptyArray = [];
+ var disabledSubscriber = () => () => {
+@@ -85,10 +86,10 @@ var disabledSubscriber = () => () => {
+ var ViewStore = class {
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   #views = /* @__PURE__ */ new Map();
+-  getView(clientID, query, enabled) {
+-    if (!enabled) {
++  getView(clientID, query, opts = {}) {
++    if (!opts.enable) {
+       return {
+-        getSnapshot: () => query.format.singular ? void 0 : emptyArray,
++        getSnapshot: () => opts.initialData ?? (query.format.singular ? void 0 : emptyArray),
+         subscribeReactInternals: disabledSubscriber
+       };
+     }
+@@ -97,6 +98,7 @@ var ViewStore = class {
+     if (!existing) {
+       existing = new ViewWrapper(
+         query,
++        opts.initialData,
+         (view) => {
+           const lastView = this.#views.get(hash);
+           if (lastView && lastView !== view) {
+@@ -122,8 +124,8 @@ var ViewWrapper = class {
+   #query;
+   #snapshot;
+   #reactInternals;
+-  constructor(query, onMaterialized, onDematerialized) {
+-    this.#defaultSnapshot = query.format.singular ? void 0 : emptyArray;
++  constructor(query, initialData, onMaterialized, onDematerialized) {
++    this.#defaultSnapshot = initialData ?? (query.format.singular ? void 0 : emptyArray);
+     this.#snapshot = this.#defaultSnapshot;
+     this.#onMaterialized = onMaterialized;
+     this.#onDematerialized = onDematerialized;
+diff --git a/out/zero-react/src/use-query.d.ts b/out/zero-react/src/use-query.d.ts
+index 75ab1f74a03055c8443bd1bc1ef84b1f66ef514b..cea06cfc7f96d4a69f59bd07d0bc3f1305a51d44 100644
+--- a/out/zero-react/src/use-query.d.ts
++++ b/out/zero-react/src/use-query.d.ts
+@@ -1,4 +1,4 @@
+ import type { Query, QueryType, Smash } from '../../zero-client/src/mod.js';
+ import type { TableSchema } from '../../zero-schema/src/table-schema.js';
+-export declare function useQuery<TSchema extends TableSchema, TReturn extends QueryType>(q: Query<TSchema, TReturn>, enable?: boolean): Smash<TReturn>;
++export declare function useQuery<TSchema extends TableSchema, TReturn extends QueryType>(q: Query<TSchema, TReturn>, opts?: { enable?: boolean, initialData?: Smash<TReturn> }): Smash<TReturn>;
+ //# sourceMappingURL=use-query.d.ts.map

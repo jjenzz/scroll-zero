@@ -1,18 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import { useQuery, useZero } from '@rocicorp/zero/react';
-import { Schema, User } from '@/schema';
+import { User } from '@/schema';
+import { useQuery } from '@/zero-client';
+import { zero } from '@/zero';
 
 /* -------------------------------------------------------------------------------------------------
  * Users
  * -----------------------------------------------------------------------------------------------*/
 
 const Users = (props: { initialUsers: User[] }) => {
-  const z = useZero<Schema>();
-  const users = useQuery(z.query.user, { initialData: props.initialUsers });
-
-  return <div>{JSON.stringify(users, null, 2)}</div>;
+  const users = useQuery(zero.query.user, { initialData: props.initialUsers });
+  return <>{JSON.stringify(users, null, 2)}</>;
 };
 
 /* ---------------------------------------------------------------------------------------------- */

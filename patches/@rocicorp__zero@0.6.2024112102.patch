@@ -1,13 +1,22 @@
 diff --git a/out/react.js b/out/react.js
-index fbd1e0190e7997317f607254757cfa6fee8e8708..b29e835d4bceaaecb842cc15497e745a73a0339f 100644
+index fbd1e0190e7997317f607254757cfa6fee8e8708..cc5df4009eb594eb981889168e39cae936bd7ee0 100644
 --- a/out/react.js
 +++ b/out/react.js
+@@ -49,7 +49,7 @@ function internalDeepClone(value, seen) {
+ }
+ 
+ // ../zero-react/src/use-zero.tsx
+-import { createContext, useContext } from "react";
++import { createContext, useContext, useMemo } from "react";
+ import { jsx } from "react/jsx-runtime";
+ var ZeroContext = createContext(void 0);
+ function useZero() {
 @@ -70,14 +70,15 @@ function ZeroProvider({
  }
  
  // ../zero-react/src/use-query.tsx
 -function useQuery(q, enable = true) {
-+function useQuery(q, opts = {}) {
++function useQuery(q, opts) {
    const z = useZero();
    const view = viewStore.getView(
      z.clientID,
@@ -21,29 +30,30 @@ index fbd1e0190e7997317f607254757cfa6fee8e8708..b29e835d4bceaaecb842cc15497e745a
  }
  var emptyArray = [];
  var disabledSubscriber = () => () => {
-@@ -85,10 +86,10 @@ var disabledSubscriber = () => () => {
+@@ -85,10 +86,11 @@ var disabledSubscriber = () => () => {
  var ViewStore = class {
    // eslint-disable-next-line @typescript-eslint/no-explicit-any
    #views = /* @__PURE__ */ new Map();
 -  getView(clientID, query, enabled) {
 -    if (!enabled) {
 +  getView(clientID, query, opts = {}) {
-+    if (!opts.enable) {
++    const { enable = true, initialData } = opts;
++    if (!enable) {
        return {
 -        getSnapshot: () => query.format.singular ? void 0 : emptyArray,
-+        getSnapshot: () => opts.initialData ?? (query.format.singular ? void 0 : emptyArray),
++        getSnapshot: () => initialData ?? (query.format.singular ? void 0 : emptyArray),
          subscribeReactInternals: disabledSubscriber
        };
      }
-@@ -97,6 +98,7 @@ var ViewStore = class {
+@@ -97,6 +99,7 @@ var ViewStore = class {
      if (!existing) {
        existing = new ViewWrapper(
          query,
-+        opts.initialData,
++        initialData,
          (view) => {
            const lastView = this.#views.get(hash);
            if (lastView && lastView !== view) {
-@@ -122,8 +124,8 @@ var ViewWrapper = class {
+@@ -122,8 +125,8 @@ var ViewWrapper = class {
    #query;
    #snapshot;
    #reactInternals;

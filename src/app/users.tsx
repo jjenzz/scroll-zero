@@ -2,8 +2,7 @@
 
 import * as React from 'react';
 import { User } from '@/schema';
-import { useQuery } from '@/zero-client';
-import { zero } from '@/zero';
+import { zero, useQuery } from '@/zero-client';
 
 /* -------------------------------------------------------------------------------------------------
  * Users

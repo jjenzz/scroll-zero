@@ -1,10 +1,12 @@
 import { Query, QueryType, Smash } from '@rocicorp/zero';
 import { useQuery as useZeroQuery } from '@rocicorp/zero/react';
-import { type TableSchema } from '@/zero';
+import { type TableSchema, zero } from '@/zero';
 
-export function useQuery<TSchema extends TableSchema, TReturn extends QueryType>(
+function useQuery<TSchema extends TableSchema, TReturn extends QueryType>(
   query: Query<TSchema, TReturn>,
   opts?: { enable?: boolean; initialData?: Smash<TReturn> },
 ) {
   return useZeroQuery(query, opts);
 }
+
+export { useQuery, zero };

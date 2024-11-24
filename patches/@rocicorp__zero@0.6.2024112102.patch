@@ -1,5 +1,76 @@
+diff --git a/out/chunk-QB7G63C6.js b/out/chunk-QB7G63C6.js
+index 2d2b7ae8cf32c560ccb496c11e6ce15f15e270e0..8ac9d053e7393ab74e4b958d1a70656f41e9975f 100644
+--- a/out/chunk-QB7G63C6.js
++++ b/out/chunk-QB7G63C6.js
+@@ -11321,7 +11321,7 @@ function assertOrderingIncludesPK(ordering, pk) {
+     throw new Error(
+       `Ordering must include all primary key fields. Missing: ${missingFields.join(
+         ", "
+-      )}. ZQL automatically appends primary key fields to the ordering if they are missing 
++      )}. ZQL automatically appends primary key fields to the ordering if they are missing
+       so a common cause of this error is a casing mismatch between Postgres and ZQL.
+       E.g., "userid" vs "userID".
+       You may want to add double-quotes around your Postgres column names to prevent Postgres from lower-casing them:
+@@ -11398,6 +11398,7 @@ var ArrayView = class {
+   #root;
+   onDestroy;
+   #dirty = false;
++  #complete = false;
+   constructor(input, format = { singular: false, relationships: {} }) {
+     this.#input = input;
+     this.#schema = input.getSchema();
+@@ -11409,17 +11410,21 @@ var ArrayView = class {
+   get data() {
+     return this.#root[""];
+   }
++  setComplete() {
++    this.#complete = true;
++    this.#fireListeners();
++  }
+   addListener(listener) {
+     assert(!this.#listeners.has(listener), "Listener already registered");
+     this.#listeners.add(listener);
+-    listener(this.data);
++    listener(this.data, { complete: this.#complete });
+     return () => {
+       this.#listeners.delete(listener);
+     };
+   }
+   #fireListeners() {
+     for (const listener of this.#listeners) {
+-      listener(this.data);
++      listener(this.data, { complete: this.#complete });
+     }
+   }
+   destroy() {
+@@ -11446,7 +11451,6 @@ var ArrayView = class {
+     if (!this.#dirty) {
+       return;
+     }
+-    this.#dirty = false;
+     this.#fireListeners();
+   }
+ };
+@@ -11990,7 +11994,6 @@ var QueryImpl = class extends AbstractQuery {
+   }
+   materialize(factory) {
+     const ast = this._completeAst();
+-    const removeServerQuery = this.#delegate.addServerQuery(ast);
+     const input = buildPipeline(ast, this.#delegate, void 0);
+     let removeCommitObserver;
+     const onDestroy = () => {
+@@ -12003,6 +12006,9 @@ var QueryImpl = class extends AbstractQuery {
+         removeCommitObserver = this.#delegate.onTransactionCommit(cb);
+       })
+     );
++    const removeServerQuery = this.#delegate.addServerQuery(ast, got => {
++      if (got) view.setComplete();
++    });
+     return view;
+   }
+   run() {
 diff --git a/out/react.js b/out/react.js
-index fbd1e0190e7997317f607254757cfa6fee8e8708..cc5df4009eb594eb981889168e39cae936bd7ee0 100644
+index fbd1e0190e7997317f607254757cfa6fee8e8708..5271dc54c31835045fc0028f95471584c00894ea 100644
 --- a/out/react.js
 +++ b/out/react.js
 @@ -49,7 +49,7 @@ function internalDeepClone(value, seen) {
@@ -25,7 +96,7 @@ index fbd1e0190e7997317f607254757cfa6fee8e8708..cc5df4009eb594eb981889168e39cae9
 +    opts
    );
 -  return useSyncExternalStore(view.subscribeReactInternals, view.getSnapshot);
-+  const getServerSnapshot = () => opts.initialData ?? (q.format.singular ? void 0 : emptyArray);
++  const getServerSnapshot = () => opts?.initialData ?? (q.format.singular ? void 0 : emptyArray);
 +  return useSyncExternalStore(view.subscribeReactInternals, view.getSnapshot, getServerSnapshot);
  }
  var emptyArray = [];
@@ -64,6 +135,18 @@ index fbd1e0190e7997317f607254757cfa6fee8e8708..cc5df4009eb594eb981889168e39cae9
      this.#snapshot = this.#defaultSnapshot;
      this.#onMaterialized = onMaterialized;
      this.#onDematerialized = onDematerialized;
+@@ -141,7 +144,10 @@ var ViewWrapper = class {
+       return;
+     }
+     this.#view = this.#query.materialize();
+-    this.#view.addListener(this.#onData);
++    this.#view.addListener((data, details) => {
++      const snap = details.complete ? data : this.#defaultSnapshot;
++      this.#onData(snap);
++    });
+     this.#onMaterialized(this);
+   };
+   getSnapshot = () => this.#snapshot;
 diff --git a/out/zero-react/src/use-query.d.ts b/out/zero-react/src/use-query.d.ts
 index 75ab1f74a03055c8443bd1bc1ef84b1f66ef514b..cea06cfc7f96d4a69f59bd07d0bc3f1305a51d44 100644
 --- a/out/zero-react/src/use-query.d.ts
@@ -74,3 +157,17 @@ index 75ab1f74a03055c8443bd1bc1ef84b1f66ef514b..cea06cfc7f96d4a69f59bd07d0bc3f13
 -export declare function useQuery<TSchema extends TableSchema, TReturn extends QueryType>(q: Query<TSchema, TReturn>, enable?: boolean): Smash<TReturn>;
 +export declare function useQuery<TSchema extends TableSchema, TReturn extends QueryType>(q: Query<TSchema, TReturn>, opts?: { enable?: boolean, initialData?: Smash<TReturn> }): Smash<TReturn>;
  //# sourceMappingURL=use-query.d.ts.map
+\ No newline at end of file
+diff --git a/out/zql/src/query/typed-view.d.ts b/out/zql/src/query/typed-view.d.ts
+index 949fdaf9e0d4c5ec80378f29cb2690bbf8c3d893..042595858d4bd15a820af28314400c860f4f6d97 100644
+--- a/out/zql/src/query/typed-view.d.ts
++++ b/out/zql/src/query/typed-view.d.ts
+@@ -4,7 +4,7 @@ import type { Immutable } from '../../../shared/src/immutable.js';
+  * immutable. Caller must not modify it. Passed data is valid until next
+  * time listener is called.
+  */
+-export type Listener<T> = (data: Immutable<T>) => void;
++export type Listener<T> = (data: Immutable<T>, details: { complete: boolean }) => void;
+ export type TypedView<T> = {
+     addListener(listener: Listener<T>): () => void;
+     destroy(): void;

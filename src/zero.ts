@@ -28,10 +28,18 @@ if (process.env.NODE_ENV === 'production') {
 
 function prefetch<T extends Query<TableSchema>>(query: T): Promise<ReturnType<T['run']>> {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`prefetch timeout`));
+    }, 5000);
+
     try {
       const view = query.materialize();
-      view.addListener((snap) => resolve(snap as any));
+      view.addListener((snap, details) => {
+        clearTimeout(timer);
+        if (details.complete) resolve(snap as any);
+      });
     } catch (e) {
+      clearTimeout(timer);
       reject(e);
     }
   });

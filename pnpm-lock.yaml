@@ -6,13 +6,13 @@ settings:
 
 patchedDependencies:
   '@rocicorp/zero@0.6.2024112102':
-    hash: 3a3aktkqdmyalhck3eklsesjre
+    hash: dedauzdhcfigjpyf6pq7msiefu
     path: patches/@rocicorp__zero@0.6.2024112102.patch
 
 dependencies:
   '@rocicorp/zero':
     specifier: ^0.6.2024112102
-    version: 0.6.2024112102(patch_hash=3a3aktkqdmyalhck3eklsesjre)
+    version: 0.6.2024112102(patch_hash=dedauzdhcfigjpyf6pq7msiefu)
   next:
     specifier: 15.0.3
     version: 15.0.3(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
@@ -779,7 +779,7 @@ packages:
       prebuild-install: 7.1.2
     dev: false
 
-  /@rocicorp/zero@0.6.2024112102(patch_hash=3a3aktkqdmyalhck3eklsesjre):
+  /@rocicorp/zero@0.6.2024112102(patch_hash=dedauzdhcfigjpyf6pq7msiefu):
     resolution: {integrity: sha512-+R1zvDaK9m5v1vEdXv+YzgKH3b9mx7wxGnllvAR0cApOAyJvw+Fd/SGqXXULT8L3btJepFEcBvwmqOq77Trtig==}
     engines: {node: '>=20'}
     hasBin: true

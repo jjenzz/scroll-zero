@@ -1,18 +1,27 @@
-import { ZeroProvider } from './zero-provider';
-import { Users } from './users';
 import { zero, prefetch } from '@/zero';
+import { HydrateQuery } from '@/zero-client';
+import { Users } from './users';
 
-export default async function Home() {
+/* -------------------------------------------------------------------------------------------------
+ * Home
+ * -----------------------------------------------------------------------------------------------*/
+
+async function Home() {
   const users = await prefetch(zero.query.user);
 
   return (
-    <ZeroProvider>
+    <HydrateQuery initialData={prefetch.initialData()}>
       <main className="flex flex-col items-center justify-center h-screen">
-        <p>server: {JSON.stringify(users, null, 2)}</p>
-        <p>
-          client: <Users initialUsers={users} />
-        </p>
+        <h2 className="text-2xl font-bold">server</h2>
+        <pre>{JSON.stringify(users, null, 2)}</pre>
+
+        <h2 className="text-2xl font-bold">client</h2>
+        <Users />
       </main>
-    </ZeroProvider>
+    </HydrateQuery>
   );
 }
+
+/* ---------------------------------------------------------------------------------------------- */
+
+export default Home;

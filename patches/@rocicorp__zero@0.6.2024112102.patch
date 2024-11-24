@@ -70,18 +70,9 @@ index 2d2b7ae8cf32c560ccb496c11e6ce15f15e270e0..8ac9d053e7393ab74e4b958d1a70656f
    }
    run() {
 diff --git a/out/react.js b/out/react.js
-index fbd1e0190e7997317f607254757cfa6fee8e8708..5271dc54c31835045fc0028f95471584c00894ea 100644
+index fbd1e0190e7997317f607254757cfa6fee8e8708..a009f16d43f48622608d1f4d8c6106b442b1535d 100644
 --- a/out/react.js
 +++ b/out/react.js
-@@ -49,7 +49,7 @@ function internalDeepClone(value, seen) {
- }
- 
- // ../zero-react/src/use-zero.tsx
--import { createContext, useContext } from "react";
-+import { createContext, useContext, useMemo } from "react";
- import { jsx } from "react/jsx-runtime";
- var ZeroContext = createContext(void 0);
- function useZero() {
 @@ -70,14 +70,15 @@ function ZeroProvider({
  }
  

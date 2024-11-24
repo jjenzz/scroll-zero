@@ -63,3 +63,4 @@ export type User = TableSchemaToRow<typeof userSchema>;
 export type Collection = TableSchemaToRow<typeof collectionSchema>;
 export type Resource = TableSchemaToRow<typeof resourceSchema>;
 export type Schema = typeof schema;
+export type TableSchema = ReturnType<typeof createTableSchema>;

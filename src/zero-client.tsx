@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Query, QueryType, Smash, TableSchemaToRow } from '@rocicorp/zero';
+import type { Query, QueryType, Smash, Row } from '@rocicorp/zero';
 import { useQuery as _useQuery, ZeroProvider as _ZeroProvider } from '@rocicorp/zero/react';
-import { TableSchema } from '@/schema';
+import { type TableSchema } from '@/schema';
 import { zero } from '@/zero';
 
 /* -------------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ const ZeroProvider = ({ children }: ZeroProviderProps) => (
  * HydrateQuery
  * -----------------------------------------------------------------------------------------------*/
 
-type Rows = Map<string, TableSchemaToRow<any>>;
+type Rows = Map<string, Row<any>>;
 const HydrateQueryContext = React.createContext<Rows | undefined>(undefined);
 
 interface HydrateQueryProps extends React.PropsWithChildren {
@@ -37,12 +37,14 @@ const HydrateQuery = ({ children, initialData }: HydrateQueryProps) => (
 
 function useQuery<TSchema extends TableSchema, TReturn extends QueryType>(
   query: Query<TSchema, TReturn>,
-  opts?: Parameters<typeof _useQuery>[1],
+  enabled?: boolean,
 ) {
+  const [originalData, details] = _useQuery(query, enabled);
   const hydratedData = React.useContext(HydrateQueryContext);
   const key = JSON.stringify((query as any)._completeAst());
-  const initialData = (opts?.initialData ?? hydratedData?.get(key)) as Smash<TReturn> | undefined;
-  return _useQuery(query, { ...opts, initialData });
+  const initialData = hydratedData?.get(key) ?? originalData;
+  const data = details.type === 'complete' ? originalData : initialData;
+  return data as Smash<TReturn>;
 }
 
 /* ---------------------------------------------------------------------------------------------- */

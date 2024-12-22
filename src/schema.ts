@@ -1,30 +1,27 @@
-import { createSchema, createTableSchema, TableSchemaToRow } from '@rocicorp/zero';
+import { type Row, createSchema, createTableSchema, definePermissions } from '@rocicorp/zero';
 
 const userSchema = createTableSchema({
   tableName: 'user',
   columns: {
-    id: { type: 'string' },
-    name: { type: 'string' },
+    id: 'string',
+    name: 'string',
   },
-  primaryKey: ['id'],
-  relationships: {},
+  primaryKey: 'id',
 });
 
 const collectionSchema = createTableSchema({
   tableName: 'collection',
   columns: {
-    id: { type: 'string' },
-    ownerId: { type: 'string' },
-    name: { type: 'string' },
+    id: 'string',
+    ownerId: 'string',
+    name: 'string',
   },
   primaryKey: ['id'],
   relationships: {
     user: {
-      source: 'ownerId',
-      dest: {
-        schema: () => userSchema,
-        field: 'id',
-      },
+      sourceField: 'ownerId',
+      destSchema: userSchema,
+      destField: 'id',
     },
   },
 });
@@ -32,20 +29,18 @@ const collectionSchema = createTableSchema({
 const resourceSchema = createTableSchema({
   tableName: 'resource',
   columns: {
-    id: { type: 'string' },
-    collectionId: { type: 'string' },
-    title: { type: 'string' },
-    url: { type: 'string' },
-    payload: { type: 'json' },
+    id: 'string',
+    collectionId: 'string',
+    title: 'string',
+    url: 'string',
+    payload: 'json',
   },
   primaryKey: ['id'],
   relationships: {
     collection: {
-      source: 'collectionId',
-      dest: {
-        schema: () => collectionSchema,
-        field: 'id',
-      },
+      sourceField: 'collectionId',
+      destSchema: collectionSchema,
+      destField: 'id',
     },
   },
 });
@@ -59,8 +54,12 @@ export const schema = createSchema({
   },
 });
 
-export type User = TableSchemaToRow<typeof userSchema>;
-export type Collection = TableSchemaToRow<typeof collectionSchema>;
-export type Resource = TableSchemaToRow<typeof resourceSchema>;
-export type Schema = typeof schema;
+export const permissions = definePermissions(schema, () => {
+  return {};
+});
+
 export type TableSchema = ReturnType<typeof createTableSchema>;
+export type User = Row<typeof userSchema>;
+export type Collection = Row<typeof collectionSchema>;
+export type Resource = Row<typeof resourceSchema>;
+export type Schema = typeof schema;

@@ -1,0 +1,13 @@
+diff --git a/out/react.js b/out/react.js
+index c56f53d4655d4acfc0f64bb57027c5d223078c57..45c4f91a1e029a3c1dc4df0e8702aada5791aab8 100644
+--- a/out/react.js
++++ b/out/react.js
+@@ -77,7 +77,7 @@ function useQuery(q, enable = true) {
+     q,
+     enable
+   );
+-  return useSyncExternalStore(view.subscribeReactInternals, view.getSnapshot);
++  return useSyncExternalStore(view.subscribeReactInternals, view.getSnapshot, view.getSnapshot);
+ }
+ var emptyArray = [];
+ var disabledSubscriber = () => () => {

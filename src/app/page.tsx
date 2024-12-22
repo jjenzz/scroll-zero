@@ -1,6 +1,7 @@
 import { zero, prefetch } from '@/zero';
 import { HydrateQuery } from '@/zero-client';
 import { Users } from './users';
+import { AddUser } from './add-user';
 
 /* -------------------------------------------------------------------------------------------------
  * Home
@@ -17,6 +18,7 @@ async function Home() {
 
         <h2 className="text-2xl font-bold">client</h2>
         <Users />
+        <AddUser />
       </main>
     </HydrateQuery>
   );

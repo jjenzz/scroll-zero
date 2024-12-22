@@ -1,5 +1,5 @@
-import { Query, TableSchemaToRow, Zero } from '@rocicorp/zero';
-import { TableSchema, Schema, schema } from '@/schema';
+import { type Query, type Row, Zero } from '@rocicorp/zero';
+import { type TableSchema, type Schema, schema } from '@/schema';
 import { createLRUCache } from '@/utils/lru-cache';
 
 /* -------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ if (process.env.NODE_ENV === 'production') {
  * prefetch
  * -----------------------------------------------------------------------------------------------*/
 
-const rows = createLRUCache<string, TableSchemaToRow<any>>();
+const rows = createLRUCache<string, Row<any>>();
 
 function prefetch<T extends Query<TableSchema>>(
   query: T,
@@ -46,8 +46,8 @@ function prefetch<T extends Query<TableSchema>>(
 
     try {
       const view = query.materialize();
-      view.addListener((snap, details) => {
-        if (!details.complete) return;
+      view.addListener((snap, resultType) => {
+        if (resultType !== 'complete') return;
         const key = JSON.stringify((query as any)._completeAst());
         clearTimeout(timer);
         rows.set(key, snap);
